@@ -6,15 +6,8 @@
   <title>TallyConverter | Professional Excel to Tally XML</title>
   <link rel="icon" type="image/png" href="./assets/app-icon-Bis8fuz-.png">
   <link rel="apple-touch-icon" href="./assets/app-icon-Bis8fuz-.png">
-  <script>
-    // Early theme initialization to eliminate any theme flash
-    (function() {
-      const savedTheme = localStorage.getItem('tally_theme') || 'night';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    })();
-  </script>
-  <script type="module" crossorigin src="./assets/main-B97gxiun.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/main-k2qDMles.css">
+  <script type="module" crossorigin src="./assets/main-DBmGCQL6.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/main-BDWPA7eH.css">
 </head>
 <body>
 
@@ -48,11 +41,6 @@
       </div>
     </div>
     <div class="header-actions">
-      <!-- Day / Night Theme Toggle Switch Button -->
-      <button id="themeToggleBtn" class="btn btn-secondary btn-sm theme-toggle-btn" title="Switch between Day and Night mode" type="button">
-        <span id="themeToggleIcon" class="theme-icon">🌙</span>
-        <span id="themeToggleText" class="theme-text">Night</span>
-      </button>
       <button id="headerResetBtn" class="btn btn-reset btn-sm" title="Clear current file and start fresh" style="display: none;" type="button">
         <span>🔄</span> Reset
       </button>
@@ -68,8 +56,21 @@
   <!-- Main Container -->
   <main class="container">
 
-    <!-- 5-Step Guided Workflow Navigation Stepper -->
+    <!-- 6-Step Guided Workflow Navigation Stepper (0: Bank Formatter, 1-5: Core Workflow) -->
     <nav class="wizard-stepper" id="wizardStepper" aria-label="Workflow Steps">
+      <div class="stepper-step" data-step="0" id="stepNode0">
+        <div class="stepper-circle">
+          <span class="stepper-num">0</span>
+          <span class="stepper-check">✓</span>
+        </div>
+        <div class="stepper-label">
+          <span class="stepper-title">Bank Formatter</span>
+          <span class="stepper-sub">Raw Statement</span>
+        </div>
+      </div>
+
+      <div class="stepper-line" id="stepLine0"></div>
+
       <div class="stepper-step active" data-step="1" id="stepNode1">
         <div class="stepper-circle">
           <span class="stepper-num">1</span>
@@ -134,6 +135,184 @@
       </div>
     </nav>
 
+    <!-- Step 0: Bank Statement Formatter (4-Way Classification) -->
+    <section id="step0Card" class="card wizard-step mockup-step0-card" data-step="0" style="display: none;">
+      <div class="card-title-row">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="font-size: 1.6rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">🏦</div>
+          <div>
+            <h2 class="card-title" style="margin: 0; font-size: 1.25rem;">
+              <span class="step-num">0</span>
+              Bank Statement Formatter (4-Way Classification)
+            </h2>
+            <span style="font-size: 0.78rem; color: var(--apple-text-secondary);">Transforms raw bank statement spreadsheets into standard 8-column Tally vouchers (Receipt, Payment, Payment Contra, Receipt Contra)</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <button id="step0NextBtn" class="btn btn-secondary btn-sm" type="button" title="Proceed to Step 1: Upload / Voucher Selection">
+            <span>Next: Step 1</span> →
+          </button>
+        </div>
+      </div>
+
+      <div style="padding-top: 1rem;">
+        <!-- Top Controls Bar -->
+        <div class="bt-toolbar">
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <label class="btn btn-secondary btn-sm" style="cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+              <span>📂</span> Choose Statement (.xlsx / .csv)
+              <input type="file" id="btFileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+            </label>
+            <button type="button" id="btClearBtn" class="btn btn-secondary btn-sm" title="Clear current statement">
+              <span>🔄</span> Clear
+            </button>
+          </div>
+
+          <!-- Worksheet Selection for Multi-Sheet Workbooks -->
+          <div id="btSheetSelectContainer" class="bt-sheet-select-container" style="display: none; align-items: center; gap: 8px;">
+            <label for="btSheetSelect" style="font-size: 0.8125rem; font-weight: 600; color: var(--apple-text); display: flex; align-items: center; gap: 4px; margin: 0;">
+              <span>📑</span> Worksheet:
+            </label>
+            <select id="btSheetSelect" class="apple-select bt-sheet-select" style="min-width: 170px; padding: 4px 28px 4px 10px; font-size: 0.8125rem;"></select>
+            <span id="btSheetRowCount" style="font-size: 0.75rem; color: var(--apple-text-secondary); font-weight: 500;"></span>
+          </div>
+
+          <div class="bt-paste-hint">
+            <span class="bt-live-dot"></span>
+            <span>Or paste Excel rows directly with <kbd>Ctrl+V</kbd></span>
+          </div>
+        </div>
+
+        <!-- Dropzone / Empty State Area -->
+        <div id="btDropzone" class="bt-dropzone">
+          <div style="font-size: 2.25rem; margin-bottom: 8px;">📊</div>
+          <div style="font-weight: 600; color: var(--apple-text); font-size: 1rem;">Drag &amp; drop your bank statement spreadsheet here</div>
+          <div style="color: var(--apple-text-secondary); font-size: 0.8125rem; margin-top: 4px;">
+            Supports Excel (.xlsx, .xls) and CSV with Withdrawal and Deposit columns. Multi-sheet workbooks fully supported.
+          </div>
+          <div style="margin-top: 12px;">
+            <button type="button" id="btBrowseBtn" class="btn btn-secondary btn-sm">Browse Files</button>
+          </div>
+        </div>
+
+        <!-- Column Auto-Detection & Mapping Drawer -->
+        <div id="btMappingCard" class="bt-mapping-card" style="display: none;">
+          <div class="bt-mapping-header">
+            <div style="font-weight: 600; font-size: 0.85rem; color: var(--apple-text); display: flex; align-items: center; gap: 6px;">
+              <span>🎯</span> Statement Column Mapping
+            </div>
+            <span style="font-size: 0.75rem; color: #16a34a; font-weight: 600;">✓ Auto-Detected from Headers</span>
+          </div>
+          <div class="bt-mapping-grid">
+            <div class="bt-map-item">
+              <label>Date Column</label>
+              <select id="btMapDate" class="apple-select bt-select"></select>
+            </div>
+            <div class="bt-map-item">
+              <label>Bank Account (Col B)</label>
+              <select id="btMapBank" class="apple-select bt-select"></select>
+            </div>
+            <div class="bt-map-item">
+              <label>Withdrawal / Debit (Dr)</label>
+              <select id="btMapWithdrawal" class="apple-select bt-select"></select>
+            </div>
+            <div class="bt-map-item">
+              <label>Deposits / Credit (Cr)</label>
+              <select id="btMapDeposits" class="apple-select bt-select"></select>
+            </div>
+            <div class="bt-map-item">
+              <label>Txn Analysis / Party (Col H)</label>
+              <select id="btMapAnalysis" class="apple-select bt-select"></select>
+            </div>
+            <div class="bt-map-item">
+              <label>Narration (Col D)</label>
+              <select id="btMapNarration" class="apple-select bt-select"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-Way Transaction Classification Metrics Strip -->
+        <div id="btMetricsStrip" class="bt-metrics-strip" style="display: none;">
+          <div class="bt-metric-box neutral">
+            <span class="bt-metric-title">Total Rows</span>
+            <span id="btMetricTotal" class="bt-metric-value">0</span>
+          </div>
+          <div class="bt-metric-box receipts">
+            <span class="bt-metric-title">Receipts (Customer/Income)</span>
+            <span id="btMetricReceipts" class="bt-metric-value">₹0.00</span>
+          </div>
+          <div class="bt-metric-box payments">
+            <span class="bt-metric-title">Payments (Vendor/Expense)</span>
+            <span id="btMetricPayments" class="bt-metric-value">₹0.00</span>
+          </div>
+          <div class="bt-metric-box payment-contra">
+            <span class="bt-metric-title">⇄ Payment Contra (Inter-Bank Out)</span>
+            <span id="btMetricPaymentContra" class="bt-metric-value">₹0.00 (0)</span>
+          </div>
+          <div class="bt-metric-box receipt-contra">
+            <span class="bt-metric-title">⇄ Receipt Contra (Inter-Bank In)</span>
+            <span id="btMetricReceiptContra" class="bt-metric-value">₹0.00 (0)</span>
+          </div>
+        </div>
+
+        <!-- Converted Preview Table (8 Standard Columns) -->
+        <div id="btPreviewContainer" style="display: none; margin-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+            <div style="font-weight: 600; font-size: 0.85rem; color: var(--apple-text); display: flex; align-items: center; gap: 8px;">
+              <span>Converted Vouchers Preview (8 Standard Columns for Tally)</span>
+              <span id="btPreviewCount" style="font-size: 0.75rem; color: var(--apple-text-secondary); font-weight: normal;">Showing 0 records</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button type="button" id="btCopyHeadersBtn" class="btn btn-secondary btn-sm" title="Copy 8 standard column headers to paste into Excel">
+                <span>📋</span> Copy Headers
+              </button>
+              <button type="button" id="btCopyRowsBtn" class="btn btn-secondary btn-sm" title="Copy all converted voucher rows as tab-separated text to paste directly into Excel">
+                <span>📋</span> Copy All Rows
+              </button>
+            </div>
+          </div>
+          <div class="table-wrapper bt-table-wrapper">
+            <table class="financial-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center;">Vch No</th>
+                  <th style="width: 135px; text-align: center;">Type</th>
+                  <th style="width: 95px;">Date</th>
+                  <th>Debit Ledger</th>
+                  <th style="text-align: right; width: 120px;">Debit Amount</th>
+                  <th>Credit Ledger</th>
+                  <th style="text-align: right; width: 120px;">Credit Amount</th>
+                  <th>Narration</th>
+                </tr>
+              </thead>
+              <tbody id="btPreviewTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Step 0 Action Footer -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--apple-border); padding-top: 1.25rem; margin-top: 1.25rem;">
+          <div style="font-size: 0.78rem; color: var(--apple-text-secondary); max-width: 440px;">
+            ✓ Fully balanced debits &amp; credits. Contra transactions classified as <strong>Payment Contra</strong> (bank-to-bank outflow) or <strong>Receipt Contra</strong> (bank-to-bank inflow).
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" id="btCopyHeadersFooterBtn" class="btn btn-secondary btn-md" title="Copy 8 standard column headers to paste into Excel">
+              <span>📋</span> Copy Headers for Excel
+            </button>
+            <button type="button" id="btDownloadExcelBtn" class="btn btn-secondary btn-md" disabled title="Download 8-column spreadsheet matching Tally template">
+              <span>📥</span> Download Formatted Excel (.xlsx)
+            </button>
+            <button type="button" id="btLoadConverterBtn" class="btn btn-primary btn-md" disabled style="background: linear-gradient(135deg, #107c41, #0b5e31); border-color: #107c41; color: white;" title="Load directly into Step 1/Step 2 of Tally Converter">
+              <span>🚀</span> Load directly into TallyConverter
+            </button>
+            <button type="button" id="step0NextBtnBottom" class="btn btn-secondary btn-md" title="Proceed to Step 1: Upload">
+              <span>Step 1: Upload</span> →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Step 1: Select Type & Upload File (Exact Mockup Alignment) -->
     <section id="step1Card" class="card wizard-step active mockup-step1-card" data-step="1">
       <div class="card-title-row">
@@ -143,7 +322,7 @@
         </h2>
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
           <button id="openBankTransformerBtn" class="btn btn-primary btn-sm btn-bank-accent" type="button" title="Format raw bank statement into Tally vouchers (Receipt, Payment, Payment Contra, Receipt Contra)">
-            <span>🏦</span> Bank Statement Formatter
+            <span>🏦</span> Step 0: Bank Statement Formatter
           </button>
           <button id="openJournalGuideBtn" class="btn btn-secondary btn-sm" type="button" title="Learn how to enter 2+ ledgers in Debit or Credit">
             <span>📖</span> Compound Journal Guide
@@ -499,44 +678,68 @@
 
       <div id="validationAlerts"></div>
 
-      <!-- 3 Large Glowing Metric Cards (Matching Mockup 2) -->
-      <div class="data-review-metrics-grid">
-        <div class="dr-metric-card total" id="drCardTotal">
+      <!-- 4 Rich Glowing Metric Cards: Total Vouchers, Receipts, Payments, and Subdivided Contras -->
+      <div class="data-review-metrics-grid four-cards">
+        <!-- 1. Total Vouchers Card -->
+        <div class="dr-metric-card total" id="drCardTotalVouchers">
           <div class="dr-card-badges">
-            <span class="dr-pill">Total entries</span>
-            <span class="dr-pill">Total entries</span>
+            <span class="dr-pill">All Transactions</span>
+          </div>
+          <div class="dr-card-label">Total Vouchers</div>
+          <div class="dr-card-num" id="drTotalVouchers">0</div>
+          <div class="dr-card-value" id="drTotalVouchersValue">₹0.00</div>
+        </div>
+
+        <!-- 2. Receipts Card -->
+        <div class="dr-metric-card receipt" id="drCardReceipt">
+          <div class="dr-card-badges">
+            <span class="dr-pill">Inflow / Income</span>
+          </div>
+          <div class="dr-card-label">Receipts</div>
+          <div class="dr-card-num" id="drTotalReceipts">0</div>
+          <div class="dr-card-value" id="drTotalReceiptsValue">₹0.00</div>
+        </div>
+
+        <!-- 3. Payments Card -->
+        <div class="dr-metric-card payment" id="drCardPayment">
+          <div class="dr-card-badges">
+            <span class="dr-pill">Outflow / Expense</span>
+          </div>
+          <div class="dr-card-label">Payments</div>
+          <div class="dr-card-num" id="drTotalPayments">0</div>
+          <div class="dr-card-value" id="drTotalPaymentsValue">₹0.00</div>
+        </div>
+
+        <!-- 4. Total Contras Card (Subdivided inside) -->
+        <div class="dr-metric-card contra" id="drCardContra">
+          <div class="dr-card-badges">
+            <span class="dr-pill">Inter-Bank</span>
           </div>
           <div class="dr-card-label">Total Contras</div>
           <div class="dr-card-num" id="drTotalContras">0</div>
-        </div>
-
-        <div class="dr-metric-card payment" id="drCardPayment">
-          <div class="dr-card-badges">
-            <span class="dr-pill">Paid items</span>
-            <span class="dr-pill">Paid items</span>
+          <div class="dr-card-value" id="drTotalContrasValue">₹0.00</div>
+          <!-- Subdivided Breakdown inside same card -->
+          <div class="dr-contra-subdivided-box">
+            <div class="dr-contra-sub-item payment">
+              <span class="sub-label">📤 Payment Contra:</span>
+              <span class="sub-val"><strong id="drPaymentContra">0</strong> (<span id="drPaymentContraValue">₹0.00</span>)</span>
+            </div>
+            <div class="dr-contra-sub-item receipt">
+              <span class="sub-label">📥 Receipt Contra:</span>
+              <span class="sub-val"><strong id="drReceiptContra">0</strong> (<span id="drReceiptContraValue">₹0.00</span>)</span>
+            </div>
           </div>
-          <div class="dr-card-label">Payment Contra (Outflow)</div>
-          <div class="dr-card-num" id="drPaymentContra">0</div>
-        </div>
-
-        <div class="dr-metric-card receipt" id="drCardReceipt">
-          <div class="dr-card-badges">
-            <span class="dr-pill">Received items</span>
-            <span class="dr-pill">Received items</span>
-          </div>
-          <div class="dr-card-label">Receipt Contra (Inflow)</div>
-          <div class="dr-card-num" id="drReceiptContra">0</div>
         </div>
       </div>
 
       <!-- Step 4 View Mode Switcher: All Vouchers vs Contra Vouchers -->
       <div class="step4-subnav" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
-        <div class="segment-control" id="step4ViewTabs">
-          <button type="button" class="segment-btn active" data-view="all" id="step4TabAll">
+        <div class="step4-segment-control" id="step4ViewTabs">
+          <button type="button" class="step4-segment-btn active" data-view="all" id="step4TabAll">
             <span>📄 All Transactions</span>
             <span id="allVouchersCountBadge" class="tab-count-badge">0</span>
           </button>
-          <button type="button" class="segment-btn" data-view="contra" id="step4TabContra">
+          <button type="button" class="step4-segment-btn" data-view="contra" id="step4TabContra">
             <span>⇄ Contra Vouchers</span>
             <span id="contraVouchersCountBadge" class="tab-count-badge">0</span>
           </button>
@@ -575,16 +778,36 @@
             </div>
           </div>
 
-          <!-- Hidden elements for app.js legacy references -->
-          <div class="contra-metrics-strip" style="display: none;">
-            <span id="contraTotalCount">0</span>
-            <span id="contraTotalAmount">₹0.00</span>
-            <span id="contraPaymentCount">0</span>
-            <span id="contraPaymentAmount">₹0.00</span>
-            <span id="contraReceiptCount">0</span>
-            <span id="contraReceiptAmount">₹0.00</span>
-            <span id="contraSelectedCountBadge">0 Selected</span>
-            <span id="contraStatusBadge">Ready</span>
+          <!-- Contra Vouchers Summary Report Strip -->
+          <div class="contra-report-strip" id="contraReportStrip">
+            <div class="contra-report-item total">
+              <span class="report-icon">⇄</span>
+              <div>
+                <div class="report-title">Total Contras</div>
+                <div class="report-value"><span id="contraTotalCount">0</span> entries • <span id="contraTotalAmount">₹0.00</span></div>
+              </div>
+            </div>
+            <div class="contra-report-item receipt">
+              <span class="report-icon">📥</span>
+              <div>
+                <div class="report-title">Receipt Contras (Inflow)</div>
+                <div class="report-value"><span id="contraReceiptCount">0</span> entries • <span id="contraReceiptAmount">₹0.00</span></div>
+              </div>
+            </div>
+            <div class="contra-report-item payment">
+              <span class="report-icon">📤</span>
+              <div>
+                <div class="report-title">Payment Contras (Outflow)</div>
+                <div class="report-value"><span id="contraPaymentCount">0</span> entries • <span id="contraPaymentAmount">₹0.00</span></div>
+              </div>
+            </div>
+            <div class="contra-report-item selected">
+              <span class="report-icon">🎯</span>
+              <div>
+                <div class="report-title">Selected for Action</div>
+                <div class="report-value"><span id="contraSelectedCountBadge">0</span> entries • <span id="contraSelectedAmountBadge">₹0.00</span></div>
+              </div>
+            </div>
           </div>
 
           <!-- Contra Filter, Sort & Multi-Selection Toolbar -->
@@ -665,7 +888,7 @@
           <span>‹</span> <span>Back to Ledgers</span>
         </button>
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-          <button id="step4VerifySummaryBtn" class="btn btn-secondary btn-md" type="button">
+          <button id="step4VerifySummaryBtn" class="btn btn-secondary btn-md btn-verify-summary" type="button">
             <span>📊</span> <span>Verify Financial Summary</span>
           </button>
           <button id="generateXmlBtn" class="btn btn-primary btn-md glow-btn" type="button">
@@ -1252,181 +1475,6 @@
         <button type="button" class="calc-key" data-calc-val="0">0</button>
         <button type="button" class="calc-key" data-calc-val="00">00</button>
         <button type="button" class="calc-key" data-calc-val=".">.</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================================
-       BANK STATEMENT FORMATTER MODAL (4-WAY CLASSIFICATION)
-       ======================================================== -->
-  <div id="bankTransformerModal" class="modal-overlay">
-    <div class="modal-content bank-transformer-card">
-      <div class="modal-header">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="font-size: 1.6rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">🏦</div>
-          <div>
-            <h3 class="modal-title" style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--apple-text);">Bank Statement Formatter</h3>
-            <span style="font-size: 0.78rem; color: var(--apple-text-secondary);">Transforms raw bank statement spreadsheets into standard 8-column Tally vouchers (Receipt, Payment, Payment Contra, Receipt Contra)</span>
-          </div>
-        </div>
-        <button id="closeBankTransformerBtn" class="modal-close" type="button">&times;</button>
-      </div>
-
-      <div class="modal-body-scroll" style="max-height: calc(88vh - 150px); overflow-y: auto; padding: 1.25rem;">
-        <!-- Top Controls Bar -->
-        <div class="bt-toolbar">
-          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <label class="btn btn-secondary btn-sm" style="cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 6px;">
-              <span>📂</span> Choose Statement (.xlsx / .csv)
-              <input type="file" id="btFileInput" accept=".xlsx,.xls,.csv" style="display: none;">
-            </label>
-            <button type="button" id="btSampleBtn" class="btn btn-secondary btn-sm" title="Load sample bank statement with Withdrawals & Deposits">
-              <span>⚡</span> Load Sample Statement
-            </button>
-            <button type="button" id="btClearBtn" class="btn btn-secondary btn-sm" title="Clear current statement">
-              <span>🔄</span> Clear
-            </button>
-          </div>
-
-          <!-- Worksheet Selection for Multi-Sheet Workbooks -->
-          <div id="btSheetSelectContainer" class="bt-sheet-select-container" style="display: none; align-items: center; gap: 8px;">
-            <label for="btSheetSelect" style="font-size: 0.8125rem; font-weight: 600; color: var(--apple-text); display: flex; align-items: center; gap: 4px; margin: 0;">
-              <span>📑</span> Worksheet:
-            </label>
-            <select id="btSheetSelect" class="apple-select bt-sheet-select" style="min-width: 170px; padding: 4px 28px 4px 10px; font-size: 0.8125rem;"></select>
-            <span id="btSheetRowCount" style="font-size: 0.75rem; color: var(--apple-text-secondary); font-weight: 500;"></span>
-          </div>
-
-          <div class="bt-paste-hint">
-            <span class="bt-live-dot"></span>
-            <span>Or paste Excel rows directly with <kbd>Ctrl+V</kbd></span>
-          </div>
-        </div>
-
-        <!-- Dropzone / Empty State Area -->
-        <div id="btDropzone" class="bt-dropzone">
-          <div style="font-size: 2.25rem; margin-bottom: 8px;">📊</div>
-          <div style="font-weight: 600; color: var(--apple-text); font-size: 1rem;">Drag &amp; drop your bank statement spreadsheet here</div>
-          <div style="color: var(--apple-text-secondary); font-size: 0.8125rem; margin-top: 4px;">
-            Supports Excel (.xlsx, .xls) and CSV with Withdrawal and Deposit columns. Multi-sheet workbooks fully supported.
-          </div>
-          <div style="margin-top: 12px;">
-            <button type="button" id="btBrowseBtn" class="btn btn-secondary btn-sm">Browse Files</button>
-          </div>
-        </div>
-
-        <!-- Column Auto-Detection & Mapping Drawer -->
-        <div id="btMappingCard" class="bt-mapping-card" style="display: none;">
-          <div class="bt-mapping-header">
-            <div style="font-weight: 600; font-size: 0.85rem; color: var(--apple-text); display: flex; align-items: center; gap: 6px;">
-              <span>🎯</span> Statement Column Mapping
-            </div>
-            <span style="font-size: 0.75rem; color: #16a34a; font-weight: 600;">✓ Auto-Detected from Headers</span>
-          </div>
-          <div class="bt-mapping-grid">
-            <div class="bt-map-item">
-              <label>Date Column</label>
-              <select id="btMapDate" class="apple-select bt-select"></select>
-            </div>
-            <div class="bt-map-item">
-              <label>Bank Account (Col B)</label>
-              <select id="btMapBank" class="apple-select bt-select"></select>
-            </div>
-            <div class="bt-map-item">
-              <label>Withdrawal / Debit (Dr)</label>
-              <select id="btMapWithdrawal" class="apple-select bt-select"></select>
-            </div>
-            <div class="bt-map-item">
-              <label>Deposits / Credit (Cr)</label>
-              <select id="btMapDeposits" class="apple-select bt-select"></select>
-            </div>
-            <div class="bt-map-item">
-              <label>Txn Analysis / Party (Col H)</label>
-              <select id="btMapAnalysis" class="apple-select bt-select"></select>
-            </div>
-            <div class="bt-map-item">
-              <label>Narration (Col D)</label>
-              <select id="btMapNarration" class="apple-select bt-select"></select>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4-Way Transaction Classification Metrics Strip -->
-        <div id="btMetricsStrip" class="bt-metrics-strip" style="display: none;">
-          <div class="bt-metric-box neutral">
-            <span class="bt-metric-title">Total Rows</span>
-            <span id="btMetricTotal" class="bt-metric-value">0</span>
-          </div>
-          <div class="bt-metric-box receipts">
-            <span class="bt-metric-title">Receipts (Customer/Income)</span>
-            <span id="btMetricReceipts" class="bt-metric-value">₹0.00</span>
-          </div>
-          <div class="bt-metric-box payments">
-            <span class="bt-metric-title">Payments (Vendor/Expense)</span>
-            <span id="btMetricPayments" class="bt-metric-value">₹0.00</span>
-          </div>
-          <div class="bt-metric-box payment-contra">
-            <span class="bt-metric-title">⇄ Payment Contra (Inter-Bank Out)</span>
-            <span id="btMetricPaymentContra" class="bt-metric-value">₹0.00 (0)</span>
-          </div>
-          <div class="bt-metric-box receipt-contra">
-            <span class="bt-metric-title">⇄ Receipt Contra (Inter-Bank In)</span>
-            <span id="btMetricReceiptContra" class="bt-metric-value">₹0.00 (0)</span>
-          </div>
-        </div>
-
-        <!-- Converted Preview Table (8 Standard Columns) -->
-        <div id="btPreviewContainer" style="display: none; margin-top: 1rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
-            <div style="font-weight: 600; font-size: 0.85rem; color: var(--apple-text); display: flex; align-items: center; gap: 8px;">
-              <span>Converted Vouchers Preview (8 Standard Columns for Tally)</span>
-              <span id="btPreviewCount" style="font-size: 0.75rem; color: var(--apple-text-secondary); font-weight: normal;">Showing 0 records</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <button type="button" id="btCopyHeadersBtn" class="btn btn-secondary btn-sm" title="Copy 8 standard column headers to paste into Excel">
-                <span>📋</span> Copy Headers
-              </button>
-              <button type="button" id="btCopyRowsBtn" class="btn btn-secondary btn-sm" title="Copy all converted voucher rows as tab-separated text to paste directly into Excel">
-                <span>📋</span> Copy All Rows
-              </button>
-            </div>
-          </div>
-          <div class="table-wrapper bt-table-wrapper">
-            <table class="financial-table">
-              <thead>
-                <tr>
-                  <th style="width: 50px; text-align: center;">Vch No</th>
-                  <th style="width: 135px; text-align: center;">Type</th>
-                  <th style="width: 95px;">Date</th>
-                  <th>Debit Ledger</th>
-                  <th style="text-align: right; width: 120px;">Debit Amount</th>
-                  <th>Credit Ledger</th>
-                  <th style="text-align: right; width: 120px;">Credit Amount</th>
-                  <th>Narration</th>
-                </tr>
-              </thead>
-              <tbody id="btPreviewTbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal Footer with Actions -->
-      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--apple-border); padding: 1rem 1.25rem;">
-        <div style="font-size: 0.78rem; color: var(--apple-text-secondary); max-width: 420px;">
-          ✓ Fully balanced debits &amp; credits. Contra transactions classified as <strong>Payment Contra</strong> (bank-to-bank outflow) or <strong>Receipt Contra</strong> (bank-to-bank inflow).
-        </div>
-        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-          <button type="button" id="btCopyHeadersFooterBtn" class="btn btn-secondary btn-md" title="Copy 8 standard column headers to paste into Excel">
-            <span>📋</span> Copy Headers for Excel
-          </button>
-          <button type="button" id="btDownloadExcelBtn" class="btn btn-secondary btn-md" disabled title="Download 8-column spreadsheet matching Tally template">
-            <span>📥</span> Download Formatted Excel (.xlsx)
-          </button>
-          <button type="button" id="btLoadConverterBtn" class="btn btn-primary btn-md" disabled style="background: linear-gradient(135deg, #107c41, #0b5e31); border-color: #107c41; color: white;" title="Load directly into Step 1/Step 2 of Tally Converter">
-            <span>🚀</span> Load directly into TallyConverter
-          </button>
-        </div>
       </div>
     </div>
   </div>
